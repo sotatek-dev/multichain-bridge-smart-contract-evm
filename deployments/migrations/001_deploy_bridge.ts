@@ -15,7 +15,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment): Pr
       owner: deployer,
       execute: {
         methodName: "initialize",
-        args: ["0xb3Edf83eA590F44f5c400077EBd94CCFE10E4Bb0", "0", "100000000000000000000"], // change me when deploy production
+        args: ["0xa314AEC0369ca4549b3D9f4292d09F670B952F3F", "0", "100000000000000000000", [deployer, "0xa180A8dc9A4966cbaDd333c175c186163d03BE78", "0x1BC543Cabb710E1292BdDdAB4059fFC7a52A1dF3"], 2], // change me when deploy production
       },
     },
   });
