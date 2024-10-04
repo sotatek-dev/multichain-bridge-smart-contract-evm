@@ -111,6 +111,7 @@ const config: HardhatUserConfig = {
     ropsten: getChainConfig("ropsten"),
     bsctestnet: getChainConfig("bsctestnet"),
     sepolia: getChainConfig("sepolia"),
+    usepolia: getChainConfig("sepolia"),
     // fork: {
     //   forking: {
     //     url: "https://mainnet.infura.io/v3/d5288bc40a1a4a608af11d7b72211975",
