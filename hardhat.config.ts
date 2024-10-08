@@ -93,10 +93,11 @@ const config: HardhatUserConfig = {
   },
   networks: {
     hardhat: {
-      forking: {
-        url: "https://mainnet.infura.io/v3/d5288bc40a1a4a608af11d7b72211975",
-        blockNumber: 15536332,
-      },
+      // forking: {
+      //   url: "https://mainnet.infura.io/v3/d5288bc40a1a4a608af11d7b72211975",
+      //   blockNumber: 15536332,
+      // },
+      chainId: chainIds.hardhat,
     },
     arbitrum: getChainConfig("arbitrum"),
     avalanche: getChainConfig("avalanche"),
