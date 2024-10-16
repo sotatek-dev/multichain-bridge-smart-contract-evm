@@ -66,6 +66,7 @@ describe("Unit tests", () => {
       ).to.be.revertedWith("VM Exception while processing transaction: reverted with reason string 'Initializable: contract is already initialized'");
       
     });
+    
     it("can set threshold from admin wallet", async () => {
       const newThreshold = 3;
       await bridge.connect(admin).changeThreshold(newThreshold);
@@ -122,97 +123,146 @@ describe("Unit tests", () => {
       ).to.be.revertedWith("VM Exception while processing transaction: reverted with reason string 'Bridge: invalid amount'");
     })
 
-  it("can unlock in contract with validator signature", async () => {
-    const token = ZERO_ADDRESS; // Assuming ZERO_ADDRESS is a valid token for this test
-    const amount = ethers.utils.parseEther("0.1");
-    const user = admin.address;
-    const hash = "0x123"; // Assuming this is a valid hash for this test
-    const fee = ethers.utils.parseEther("0.01");
+    it("can unlock in contract with validator signature", async () => {
+      const token = ZERO_ADDRESS; // Assuming ZERO_ADDRESS is a valid token for this test
+      const amount = ethers.utils.parseEther("0.1");
+      const user = admin.address;
+      const hash = "0x123"; // Assuming this is a valid hash for this test
+      const fee = ethers.utils.parseEther("0.01");
 
-    const lockAmount = ethers.utils.parseEther("1");
-    await bridge.connect(admin).lock(ZERO_ADDRESS, admin.address, lockAmount, {value: lockAmount});
-    const sig1 = await mintProof(
-      validator1,
-      bridge.address,
-      token,
-      amount,
-      user,
-      hash,
-      fee
-    )
+      const lockAmount = ethers.utils.parseEther("1");
+      await bridge.connect(admin).lock(ZERO_ADDRESS, admin.address, lockAmount, {value: lockAmount});
+      const sig1 = await mintProof(
+        validator1,
+        bridge.address,
+        token,
+        amount,
+        user,
+        hash,
+        fee
+      )
 
-    const sig2 = await mintProof(
-      validator2,
-      bridge.address,
-      token,
-      amount,
-      user,
-      hash,
-      fee
-    )
+      const sig2 = await mintProof(
+        validator2,
+        bridge.address,
+        token,
+        amount,
+        user,
+        hash,
+        fee
+      )
 
-    const sig3 = await mintProof(
-      validator3,
-      bridge.address,
-      token,
-      amount,
-      user,
-      hash,
-      fee
-    )
-    const signatures = [sig1, sig2, sig3]; // Assuming validator1 has signed the hash
+      const sig3 = await mintProof(
+        validator3,
+        bridge.address,
+        token,
+        amount,
+        user,
+        hash,
+        fee
+      )
+      const signatures = [sig1, sig2, sig3]; // Assuming validator1 has signed the hash
 
-    await bridge.connect(minter).unlock(token, amount, user, hash, fee, signatures);
-    expect(await bridge.unlockHash(hash)).to.equal(true);
-  });
+      await bridge.connect(minter).unlock(token, amount, user, hash, fee, signatures);
+      expect(await bridge.unlockHash(hash)).to.equal(true);
+    });
 
-  it("can unlock in contract with validator signature", async () => {
-    const token = ZERO_ADDRESS; // Assuming ZERO_ADDRESS is a valid token for this test
-    const amount = ethers.utils.parseEther("0.1");
-    const user = admin.address;
-    const hash = "0x123"; // Assuming this is a valid hash for this test
-    const fee = ethers.utils.parseEther("0.01");
+    it("cannot unlock in contract with validator signature", async () => {
+      const token = ZERO_ADDRESS; // Assuming ZERO_ADDRESS is a valid token for this test
+      const amount = ethers.utils.parseEther("0.1");
+      const user = admin.address;
+      const hash = "0x123"; // Assuming this is a valid hash for this test
+      const fee = ethers.utils.parseEther("0.01");
 
-    const lockAmount = ethers.utils.parseEther("1");
-    await bridge.connect(admin).lock(ZERO_ADDRESS, admin.address, lockAmount, {value: lockAmount});
-    const sig1 = await mintProof(
-      validator1,
-      bridge.address,
-      token,
-      amount,
-      user,
-      hash,
-      fee
-    )
+      const lockAmount = ethers.utils.parseEther("1");
+      await bridge.connect(admin).lock(ZERO_ADDRESS, admin.address, lockAmount, {value: lockAmount});
+      const sig1 = await mintProof(
+        validator1,
+        bridge.address,
+        token,
+        amount,
+        user,
+        hash,
+        fee
+      )
 
-    const sig2 = await mintProof(
-      validator2,
-      bridge.address,
-      token,
-      amount,
-      user,
-      hash,
-      fee
-    )
+      const sig2 = await mintProof(
+        validator2,
+        bridge.address,
+        token,
+        amount,
+        user,
+        hash,
+        fee
+      )
 
-    const sig3 = await mintProof(
-      validator3,
-      bridge.address,
-      token,
-      amount,
-      user,
-      hash,
-      fee
-    )
-    const signatures = [sig1]; // Assuming validator1 has signed the hash
+      const sig3 = await mintProof(
+        validator3,
+        bridge.address,
+        token,
+        amount,
+        user,
+        hash,
+        fee
+      )
+      const signatures = [sig1]; // Assuming validator1 has signed the hash
 
-    // await bridge.connect(minter).unlock(token, amount, user, hash, fee, signatures);
-    // expect(await bridge.unlockHash(hash)).to.equal(true);
+      // await bridge.connect(minter).unlock(token, amount, user, hash, fee, signatures);
+      // expect(await bridge.unlockHash(hash)).to.equal(true);
 
-    await expect(
-      bridge.connect(minter).unlock(token, amount, user, hash, fee, signatures)
-    ).to.be.revertedWith("VM Exception while processing transaction: reverted with reason string 'Signature: Invalid Length'");
-  });
+      await expect(
+        bridge.connect(minter).unlock(token, amount, user, hash, fee, signatures)
+      ).to.be.revertedWith("VM Exception while processing transaction: reverted with reason string 'Signature: Invalid Length'");
+    });
+
+    it("cannot unlock in contract with invalid signature", async () => {
+      const token = ZERO_ADDRESS; // Assuming ZERO_ADDRESS is a valid token for this test
+      const amount = ethers.utils.parseEther("0.1");
+      const user = admin.address;
+      const hash = "0x123"; // Assuming this is a valid hash for this test
+      const hash1 = "0x1234"
+      const fee = ethers.utils.parseEther("0.01");
+
+      const lockAmount = ethers.utils.parseEther("1");
+      await bridge.connect(admin).lock(ZERO_ADDRESS, admin.address, lockAmount, {value: lockAmount});
+      const sig1 = await mintProof(
+        validator1,
+        bridge.address,
+        token,
+        amount,
+        user,
+        hash,
+        fee
+      )
+
+      const sig2 = await mintProof(
+        validator2,
+        bridge.address,
+        token,
+        amount,
+        user,
+        hash,
+        fee
+      )
+
+      const sig3 = await mintProof(
+        validator3,
+        bridge.address,
+        token,
+        amount,
+        user,
+        hash,
+        fee
+      )
+      const signatures = [sig1, sig2, sig3]; // Assuming validator1 has signed the hash
+
+      // await bridge.connect(minter).unlock(token, amount, user, hash, fee, signatures);
+      // expect(await bridge.unlockHash(hash)).to.equal(true);
+
+      await expect(
+        bridge.connect(minter).unlock(token, amount, user, hash1, fee, signatures)
+      ).to.be.revertedWith("VM Exception while processing transaction: reverted with reason string 'Invalid signature'");
+    });
 
 
   });
