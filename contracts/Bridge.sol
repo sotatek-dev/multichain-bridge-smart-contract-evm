@@ -51,6 +51,7 @@ contract Bridge is OwnableUpgradeable, ReentrancyGuardUpgradeable, EIP712Upgrade
             validators[_validators[i]] = true;
         }
         threshold = _threshold;
+        whitelistTokens[address(0)] = true;
         emit ChangeMinter(minter);
     }
 
