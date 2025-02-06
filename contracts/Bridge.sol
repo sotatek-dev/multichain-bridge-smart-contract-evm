@@ -20,6 +20,7 @@ contract Bridge is OwnableUpgradeable, ReentrancyGuardUpgradeable, EIP712Upgrade
     uint256 public minAmount;
     uint256 public threshold;
     mapping(address => bool) public validators;
+    uint256 public numberOfValidators;
 
     event Lock(address locker, string receipt, address token, uint256 amount, string tokenName);
     event Unlock(address user, address token, uint256 amount, string hash, uint256 fee);
@@ -44,12 +45,11 @@ contract Bridge is OwnableUpgradeable, ReentrancyGuardUpgradeable, EIP712Upgrade
         __Ownable_init();
         __ReentrancyGuard_init();
         __EIP712_init("MinaBridge", "1.0.0");
+        require(_minAmount <= _maxAmount, "Invalid minAmount");
         minter = _minter;
         minAmount = _minAmount;
         maxAmount = _maxAmount;
-        for (uint256 i = 0; i < _validators.length; ++i) {
-            validators[_validators[i]] = true;
-        }
+        _addListValidator(_validators);
         threshold = _threshold;
         whitelistTokens[address(0)] = true;
         emit ChangeMinter(minter);
@@ -80,6 +80,15 @@ contract Bridge is OwnableUpgradeable, ReentrancyGuardUpgradeable, EIP712Upgrade
         require(_validators.length > 0, "Invalid length");
         for (uint256 i = 0; i < _validators.length; i++) {
             validators[_validators[i]] = true;
+            numberOfValidators = numberOfValidators + 1;
+        }
+    }
+
+    function _removeListValidator(address[] memory _validators) internal {
+        require(_validators.length > 0, "Invalid length");
+        for (uint256 i = 0; i < _validators.length; i++) {
+            validators[_validators[i]] = false;
+            numberOfValidators = numberOfValidators - 1;
         }
     }
 
@@ -90,7 +99,8 @@ contract Bridge is OwnableUpgradeable, ReentrancyGuardUpgradeable, EIP712Upgrade
         if (token == address(0)) {
             require(msg.value == amount, "Bridge: invalid amount");
         } else {
-            IERC20(token).transferFrom(msg.sender, address(this), amount);
+            bool isSuccess = IERC20(token).transferFrom(msg.sender, address(this), amount);
+            require(isSuccess, "Bridge: transfer from failed");
             name = IERC20(token).name();
         }
         emit Lock(msg.sender, receipt, token, amount, name);
@@ -167,11 +177,16 @@ contract Bridge is OwnableUpgradeable, ReentrancyGuardUpgradeable, EIP712Upgrade
     }
 
     function changeThreshold(uint256 _newThreshold) external onlyOwner() {
+        require(_newThreshold <= numberOfValidators, "Invalid newThreshold");
         threshold = _newThreshold;
         emit ChangeThreshold(_newThreshold);
     }
 
     function addListValidator(address[] memory _validators) external onlyOwner {
         _addListValidator(_validators);
+    }
+
+    function removeListValidator(address[] memory _validators) external onlyOwner {
+        _removeListValidator(_validators);
     }
 }
